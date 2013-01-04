@@ -28,15 +28,16 @@ class Board(object):
         return (self.positions[(3,4)] + self.positions[(4,3)],
                 self.positions[(3,3)] + self.positions[(4,4)], 1)
 
-    def display(self, state, _unicode=True):
+    def display(self, state, play, _unicode=True):
         pieces = self.unicode_pieces if _unicode else self.str_pieces
 
         p1_placed, p2_placed, player = state
 
         row_sep = "  |" + "-"*(4*self.cols - 1) + "|\n"
         header = " "*4 + "   ".join(string.lowercase[:self.cols]) + "\n"
-        msg = "Player {0} to move.    ({1}-{2})".format(
-            player, bin(p1_placed).count('1'), bin(p2_placed).count('1'))
+        msg = "Played: {0}\nPlayer {1} to move.    ({2}-{3})".format(
+            self.pack(play), player,
+            bin(p1_placed).count('1'), bin(p2_placed).count('1'))
 
         P = [[0 for c in xrange(self.cols)] for r in xrange(self.rows)]
         for (r, c), v in self.positions.iteritems():
@@ -235,6 +236,10 @@ class Board(object):
             return
         c, r = result.groups()
         return int(r) - 1, 'abcdefgh'.index(c)
+
+    def pack(self, play):
+        r, c = play
+        return 'abcdefgh'[c] + str(r+1)
 
     def play(self, state, play):
         P = self.positions[play]
