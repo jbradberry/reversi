@@ -146,63 +146,6 @@ class Board(object):
         return [(r, c) for (r, c), v in self.positions.iteritems()
                 if v & legal]
 
-    def _legal_plays(self, state):
-        ## Alternative algorithm 2
-
-        p1_placed, p2_placed, player = state
-        occupied = p1_placed | p2_placed
-
-        mine = p1_placed if player == 1 else p2_placed
-        opp = p2_placed if player == 1 else p1_placed
-
-        plays = []
-
-        for (r, c), v in self.positions.iteritems():
-            if v & occupied:
-                continue
-            for dr, dc in ((-1, 0), (-1, 1), (0, 1), (1, 1),
-                           (1, 0), (1, -1), (0, -1), (-1, -1)):
-                cr, cc, count = r + dr, c + dc, 0
-                while ((cr, cc) in self.positions and
-                       self.positions[(cr, cc)] & opp):
-                    cr += dr
-                    cc += dc
-                    count += 1
-                if count == 0:
-                    continue
-                if ((cr, cc) in self.positions and
-                    self.positions[(cr, cc)] & mine):
-                    plays.append((r, c))
-                    break
-
-        return plays
-
-        ## Alternative algorithm 1
-
-        # p1_pieces = set((r, c) for (r, c), v in self.positions.iteritems()
-        #                 if v & p1_placed)
-        # p2_pieces = set((r, c) for (r, c), v in self.positions.iteritems()
-        #                 if v & p2_placed)
-
-        # mine = p1_pieces if player == 1 else p2_pieces
-        # opp = p2_pieces if player == 1 else p1_pieces
-        # plays = set()
-
-        # for r, c in mine:
-        #     for dr, dc in ((-1, 0), (-1, 1), (0, 1), (1, 1),
-        #                    (1, 0), (1, -1), (0, -1), (-1, -1)):
-        #         cr, cc, count = r + dr, c + dc, 0
-        #         while (cr, cc) in opp:
-        #             cr += dr
-        #             cc += dc
-        #             count += 1
-        #         if count == 0:
-        #             continue
-        #         if (cr, cc) in self.positions and (cr, cc) not in mine:
-        #             plays.add((cr, cc))
-
-        # return tuple(plays)
-
     def winner(self, state_lst):
         state = state_lst[-1]
         p1_placed, p2_placed, player = state
@@ -344,41 +287,4 @@ class Board(object):
 
         if self.legal_plays((p1_placed, p2_placed, 3-player)):
             return (p1_placed, p2_placed, 3-player)
-        return (p1_placed, p2_placed, player)
-
-    def _play(self, state, play):
-        R, C = play
-        p1_placed, p2_placed, player = state
-
-        p1_pieces = set((r, c) for (r, c), v in self.positions.iteritems()
-                        if v & p1_placed)
-        p2_pieces = set((r, c) for (r, c), v in self.positions.iteritems()
-                        if v & p2_placed)
-
-        mine = p1_pieces if player == 1 else p2_pieces
-        opp = p2_pieces if player == 1 else p1_pieces
-        flips = set()
-
-        for dr, dc in ((-1, 0), (-1, 1), (0, 1), (1, 1),
-                       (1, 0), (1, -1), (0, -1), (-1, -1)):
-            cr, cc, marked = R + dr, C + dc, set()
-            while (cr, cc) in opp:
-                marked.add((cr, cc))
-                cr += dr
-                cc += dc
-            if (cr, cc) in mine:
-                flips |= marked
-
-        mine.add((R, C))
-        mine |= flips
-        opp -= flips
-
-        p1_pieces = mine if player == 1 else opp
-        p2_pieces = opp if player == 1 else mine
-
-        p1_placed = sum(self.positions[(r, c)] for r, c in p1_pieces)
-        p2_placed = sum(self.positions[(r, c)] for r, c in p2_pieces)
-
-        if self.legal_plays((p1_placed, p2_placed, 3-player)):
-            player = 3 - player
         return (p1_placed, p2_placed, player)

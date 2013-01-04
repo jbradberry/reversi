@@ -22,8 +22,6 @@ class MonteCarlo(player.Player):
         state = self.states[-1]
         player = state[2]
         legal = self.board.legal_plays(state)
-        _legal = self.board._legal_plays(state)
-        assert set(legal) == set(_legal)
 
         if not legal:
             return
