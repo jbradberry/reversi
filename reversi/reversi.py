@@ -35,7 +35,8 @@ class Board(object):
 
         row_sep = "  |" + "-"*(4*self.cols - 1) + "|\n"
         header = " "*4 + "   ".join(string.lowercase[:self.cols]) + "\n"
-        msg = "Player {0} to move.\n".format(player)
+        msg = "Player {0} to move.    ({1}-{2})".format(
+            player, bin(p1_placed).count('1'), bin(p2_placed).count('1'))
 
         P = [[0 for c in xrange(self.cols)] for r in xrange(self.rows)]
         for (r, c), v in self.positions.iteritems():
