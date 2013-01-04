@@ -238,6 +238,8 @@ class Board(object):
         return int(r) - 1, 'abcdefgh'.index(c)
 
     def pack(self, play):
+        if play is None:
+            return ''
         r, c = play
         return 'abcdefgh'[c] + str(r+1)
 

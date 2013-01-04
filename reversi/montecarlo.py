@@ -59,7 +59,7 @@ class MonteCarlo(player.Player):
             legal = self.board.legal_plays(state)
             states = [(self.board.play(state, p), p) for p in legal]
             if not states:
-                print self.board.display(state)
+                print self.board.display(state, None)
 
             if all(self.plays[player].get(S) for S, p in states):
                 plays, wins = self.plays[player], self.wins[player]
