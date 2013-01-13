@@ -33,6 +33,7 @@ class Board(object):
 
         p1_placed, p2_placed, player = state
 
+        # FIXME: new line above the board printout
         row_sep = "  |" + "-"*(4*self.cols - 1) + "|\n"
         header = " "*4 + "   ".join(string.lowercase[:self.cols]) + "\n"
         msg = "Played: {0}\nPlayer {1} to move.    ({2}-{3})".format(

@@ -24,8 +24,15 @@ class MonteCarlo(player.Player):
     def get_play(self):
         state = self.states[-1]
         player = state[2]
-        legal = self.board.legal_plays(state)
 
+        if len(self.states) > 1:
+            prev = self.states[-2][2]
+            if prev != player and state in self.wins[prev]:
+                w, p = self.wins[prev][state], self.plays[prev][state]
+                print "previous player: {0:.2f}% ({1} / {2})".format(
+                    100 * w / p, w, p)
+
+        legal = self.board.legal_plays(state)
         if not legal:
             return
         if len(legal) == 1:
