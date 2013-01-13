@@ -18,6 +18,9 @@ class MonteCarlo(player.Player):
         self.wins = {1: {}, 2: {}}
         self.plays = {1: {}, 2: {}}
 
+        self.count = 0
+        self.fully_explored = 1000
+
     def get_play(self):
         state = self.states[-1]
         player = state[2]
@@ -29,7 +32,10 @@ class MonteCarlo(player.Player):
             return legal[0]
 
         begin, games = datetime.datetime.utcnow(), 0
+        self.count = 0
         while datetime.datetime.utcnow() - begin < self.max_time:
+            if self.count >= self.fully_explored:
+                break
             self.random_game()
             games += 1
 
@@ -59,7 +65,7 @@ class MonteCarlo(player.Player):
             if not states:
                 print self.board.display(state, None)
 
-            if all(self.plays[player].get(S) for S, p in states):
+            if all(S in self.plays[player] for S, p in states):
                 plays, wins = self.plays[player], self.wins[player]
                 log_total = log(sum(plays[S] for S, p in states) or 1)
                 move = max(((wins[S] / plays[S]) +
@@ -73,6 +79,7 @@ class MonteCarlo(player.Player):
 
             if expand and state not in self.plays[player]:
                 expand = False
+                self.count = 0
                 self.plays[player][state] = 0
                 self.wins[player][state] = 0
 
@@ -82,6 +89,8 @@ class MonteCarlo(player.Player):
             winner = self.board.winner(new_states)
             if winner:
                 break
+
+        self.count += 1
 
         for player, M in game_moves.iteritems():
             for S in M:
