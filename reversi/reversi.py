@@ -28,7 +28,7 @@ class Board(object):
         return (self.positions[(3,4)] + self.positions[(4,3)],
                 self.positions[(3,3)] + self.positions[(4,4)], 1)
 
-    def display(self, state, play, _unicode=True):
+    def display(self, state, action, _unicode=True):
         pieces = self.unicode_pieces if _unicode else self.str_pieces
 
         p1_placed, p2_placed, player = state
@@ -37,7 +37,7 @@ class Board(object):
         row_sep = "  |" + "-"*(4*self.cols - 1) + "|\n"
         header = " "*4 + "   ".join(string.lowercase[:self.cols]) + "\n"
         msg = "Played: {0}\nPlayer {1} to move.    ({2}-{3})".format(
-            self.pack(play), player,
+            self.pack(action), player,
             bin(p1_placed).count('1'), bin(p2_placed).count('1'))
 
         P = [[0 for c in xrange(self.cols)] for r in xrange(self.rows)]
@@ -52,13 +52,13 @@ class Board(object):
         board = ''.join((header, row_sep, board, row_sep, header, msg))
         return board
 
-    def is_legal(self, state_history, play):
-        plays = set(self.legal_plays(state_history))
-        return play in plays
+    def is_legal(self, history, action):
+        actions = set(self.legal_actions(history))
+        return action in actions
 
-    def legal_plays(self, state_history):
+    def legal_actions(self, history):
         ## Kogge-Stone algorithm
-        p1_placed, p2_placed, player = state_history[-1]
+        p1_placed, p2_placed, player = history[-1]
         occupied = p1_placed | p2_placed
         empty = 0xffffffffffffffff ^ occupied
 
@@ -147,8 +147,8 @@ class Board(object):
     def current_player(self, state):
         return state[-1]
 
-    def winner(self, state_history):
-        state = state_history[-1]
+    def winner(self, history):
+        state = history[-1]
         p1_placed, p2_placed, player = state
 
         if p2_placed == 0:
@@ -158,7 +158,7 @@ class Board(object):
 
         occupied = p1_placed | p2_placed
         if (occupied == (1 << (self.rows * self.cols)) - 1 or
-            not self.legal_plays([state])):
+            not self.legal_actions([state])):
             p1_score = bin(p1_placed).count('1')
             p2_score = bin(p2_placed).count('1')
             if p1_score > p2_score:
@@ -174,21 +174,21 @@ class Board(object):
             return "Stalemate."
         return "Winner: Player {0}.".format(winner)
 
-    def parse(self, play):
-        result = self.moveRE.match(play)
+    def parse(self, action):
+        result = self.moveRE.match(action)
         if not result:
             return
         c, r = result.groups()
         return int(r) - 1, 'abcdefgh'.index(c)
 
-    def pack(self, play):
-        if play is None:
+    def pack(self, action):
+        if action is None:
             return ''
-        r, c = play
+        r, c = action
         return 'abcdefgh'[c] + str(r+1)
 
-    def next_state(self, state, play):
-        P = self.positions[play]
+    def next_state(self, state, action):
+        P = self.positions[action]
         p1_placed, p2_placed, player = state
 
         occupied = p1_placed | p2_placed
@@ -286,8 +286,8 @@ class Board(object):
         p1_placed = mine if player == 1 else opp
         p2_placed = opp if player == 1 else mine
 
-        # If there are legal plays with the next player, they are
+        # If there are legal actions with the next player, they are
         # next.  Otherwise, this player gets to go again.
-        if self.legal_plays([(p1_placed, p2_placed, 3-player)]):
+        if self.legal_actions([(p1_placed, p2_placed, 3-player)]):
             return (p1_placed, p2_placed, 3-player)
         return (p1_placed, p2_placed, player)
