@@ -26,12 +26,12 @@ class Board(object):
     def starting_state(self):
         # p1 placed, p2 placed, player to move
         return (self.positions[(3,4)] + self.positions[(4,3)],
-                self.positions[(3,3)] + self.positions[(4,4)], 1)
+                self.positions[(3,3)] + self.positions[(4,4)], 2, 1)
 
     def display(self, state, action, _unicode=True):
         pieces = self.unicode_pieces if _unicode else self.str_pieces
 
-        p1_placed, p2_placed, player = state
+        p1_placed, p2_placed, previous, player = state
 
         # FIXME: new line above the board printout
         row_sep = "  |" + "-"*(4*self.cols - 1) + "|\n"
@@ -58,7 +58,7 @@ class Board(object):
 
     def legal_actions(self, history):
         ## Kogge-Stone algorithm
-        p1_placed, p2_placed, player = history[-1]
+        p1_placed, p2_placed, previous, player = history[-1]
         occupied = p1_placed | p2_placed
         empty = 0xffffffffffffffff ^ occupied
 
@@ -145,14 +145,14 @@ class Board(object):
                 if v & legal]
 
     def previous_player(self, state):
-        return 3 - state[-1]
+        return state[-2]
 
     def current_player(self, state):
         return state[-1]
 
     def is_ended(self, history):
         state = history[-1]
-        p1_placed, p2_placed, player = state
+        p1_placed, p2_placed, previous, player = state
 
         if p2_placed == 0:
             return True
@@ -168,7 +168,7 @@ class Board(object):
             return
 
         state = history[-1]
-        p1_placed, p2_placed, player = state
+        p1_placed, p2_placed, previous, player = state
 
         p1_score = bin(p1_placed).count('1')
         p2_score = bin(p2_placed).count('1')
@@ -185,7 +185,7 @@ class Board(object):
             return
 
         state = history[-1]
-        p1_placed, p2_placed, player = state
+        p1_placed, p2_placed, previous, player = state
 
         p1_score = bin(p1_placed).count('1')
         p2_score = bin(p2_placed).count('1')
@@ -214,7 +214,7 @@ class Board(object):
 
     def next_state(self, state, action):
         P = self.positions[action]
-        p1_placed, p2_placed, player = state
+        p1_placed, p2_placed, previous, player = state
 
         occupied = p1_placed | p2_placed
         empty = 0xffffffffffffffff ^ occupied
@@ -313,6 +313,6 @@ class Board(object):
 
         # If there are legal actions with the next player, they are
         # next.  Otherwise, this player gets to go again.
-        if self.legal_actions([(p1_placed, p2_placed, 3-player)]):
-            return (p1_placed, p2_placed, 3-player)
-        return (p1_placed, p2_placed, player)
+        if self.legal_actions([(p1_placed, p2_placed, player, 3-player)]):
+            return (p1_placed, p2_placed, player, 3-player)
+        return (p1_placed, p2_placed, player, player)
