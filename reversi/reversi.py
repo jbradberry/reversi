@@ -144,6 +144,9 @@ class Board(object):
         return [(r, c) for (r, c), v in self.positions.iteritems()
                 if v & legal]
 
+    def previous_player(self, state):
+        return 3 - state[-1]
+
     def current_player(self, state):
         return state[-1]
 
