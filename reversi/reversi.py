@@ -37,7 +37,7 @@ class Board(object):
         row_sep = "  |" + "-"*(4*self.cols - 1) + "|\n"
         header = " "*4 + "   ".join(string.lowercase[:self.cols]) + "\n"
         msg = "Played: {0}\nPlayer {1} to move.    ({2}-{3})".format(
-            self.pack(action), player,
+            self.unpack_action(action), player,
             bin(p1_placed).count('1'), bin(p2_placed).count('1'))
 
         P = [[0 for c in xrange(self.cols)] for r in xrange(self.rows)]
@@ -199,14 +199,14 @@ class Board(object):
             return "Tie."
         return "Winner: Player {0}.".format(winner)
 
-    def parse(self, action):
-        result = self.moveRE.match(action)
+    def pack_action(self, notation):
+        result = self.moveRE.match(notation)
         if not result:
             return
         c, r = result.groups()
         return int(r) - 1, 'abcdefgh'.index(c)
 
-    def pack(self, action):
+    def unpack_action(self, action):
         if action is None:
             return ''
         r, c = action
