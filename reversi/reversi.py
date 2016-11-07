@@ -23,7 +23,7 @@ class Board(object):
                              for r in xrange(cls.rows)
                              for c in xrange(cls.cols))
 
-    def start(self):
+    def starting_state(self):
         # p1 placed, p2 placed, player to move
         return (self.positions[(3,4)] + self.positions[(4,3)],
                 self.positions[(3,3)] + self.positions[(4,4)], 1)
