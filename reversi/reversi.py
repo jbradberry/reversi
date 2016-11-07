@@ -147,31 +147,53 @@ class Board(object):
     def current_player(self, state):
         return state[-1]
 
-    def winner(self, history):
+    def is_ended(self, history):
         state = history[-1]
         p1_placed, p2_placed, player = state
 
         if p2_placed == 0:
-            return 1
+            return True
         if p1_placed == 0:
-            return 2
+            return True
 
         occupied = p1_placed | p2_placed
-        if (occupied == (1 << (self.rows * self.cols)) - 1 or
-            not self.legal_actions([state])):
-            p1_score = bin(p1_placed).count('1')
-            p2_score = bin(p2_placed).count('1')
-            if p1_score > p2_score:
-                return 1
-            if p2_score > p1_score:
-                return 2
-            if p1_score == p2_score:
-                return 3
-        return 0
+        return (occupied == (1 << (self.rows * self.cols)) - 1 or
+                not self.legal_actions([state]))
 
-    def winner_message(self, winner):
-        if winner == 3:
-            return "Stalemate."
+    def win_values(self, history):
+        if not self.is_ended(history):
+            return
+
+        state = history[-1]
+        p1_placed, p2_placed, player = state
+
+        p1_score = bin(p1_placed).count('1')
+        p2_score = bin(p2_placed).count('1')
+
+        if p1_score > p2_score:
+            return {1: 1, 2: 0}
+        if p2_score > p1_score:
+            return {1: 0, 2: 1}
+        if p1_score == p2_score:
+            return {1: 0.5, 2: 0.5}
+
+    def points_values(self, history):
+        if not self.is_ended(history):
+            return
+
+        state = history[-1]
+        p1_placed, p2_placed, player = state
+
+        p1_score = bin(p1_placed).count('1')
+        p2_score = bin(p2_placed).count('1')
+
+        return {1: p1_score, 2: p2_score}
+
+    def winner_message(self, winners):
+        winners = sorted((v, k) for k, v in winners.iteritems())
+        value, winner = winners[-1]
+        if value == 0.5:
+            return "Tie."
         return "Winner: Player {0}.".format(winner)
 
     def parse(self, action):
