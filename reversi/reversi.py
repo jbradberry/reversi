@@ -24,7 +24,7 @@ class Board(object):
                              for c in xrange(cls.cols))
 
     def starting_state(self):
-        # p1 placed, p2 placed, player to move
+        # p1 placed, p2 placed, previous player, player to move
         return (self.positions[(3,4)] + self.positions[(4,3)],
                 self.positions[(3,3)] + self.positions[(4,4)], 2, 1)
 
@@ -198,6 +198,34 @@ class Board(object):
         if value == 0.5:
             return "Tie."
         return "Winner: Player {0}.".format(winner)
+
+    def pack_state(self, data):
+        player = data['player']
+        previous = data['previous_player']
+        state = {1: 0, 2: 0}
+        for item in data['pieces']:
+            index = 1 << (self.cols * item['row'] + item['column'])
+            state[item['player']] += index
+
+        return (state[1], state[2], previous, player)
+
+    def unpack_state(self, state):
+        p1_placed, p2_placed, previous, player = state
+
+        pieces = []
+        for r in xrange(self.rows):
+            for c in xrange(self.cols):
+                index = 1 << (self.cols * r + c)
+                if index & p1_placed:
+                    pieces.append({'type': 'disc', 'player': 1, 'row': r, 'column': c})
+                if index & p2_placed:
+                    pieces.append({'type': 'disc', 'player': 2, 'row': r, 'column': c})
+
+        return {
+            'pieces': pieces,
+            'player': player,
+            'previous_player': previous,
+        }
 
     def pack_action(self, notation):
         result = self.moveRE.match(notation)
