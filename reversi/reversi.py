@@ -31,21 +31,19 @@ class Board(object):
     def display(self, state, action, _unicode=True):
         pieces = self.unicode_pieces if _unicode else self.str_pieces
 
-        p1_placed, p2_placed, previous, player = state
-
-        # FIXME: new line above the board printout
         row_sep = "  |" + "-"*(4*self.cols - 1) + "|\n"
-        header = " "*4 + "   ".join(string.lowercase[:self.cols]) + "\n"
-        msg = "Played: {0}\nPlayer {1} to move.    ({2}-{3})".format(
-            self.unpack_action(action), player,
-            bin(p1_placed).count('1'), bin(p2_placed).count('1'))
+        header = "\n" + " "*4 + "   ".join(string.lowercase[:self.cols]) + "\n"
+        msg = "{0}Player {1} to move.    ({2}-{3})".format(
+            "Played: {}\n".format(
+                self.to_notation(self.to_compact_action(action))) if action else '',
+            state['player'],
+            sum(1 for p in state['pieces'] if p['player'] == 1),
+            sum(1 for p in state['pieces'] if p['player'] == 2)
+        )
 
         P = [[0 for c in xrange(self.cols)] for r in xrange(self.rows)]
-        for (r, c), v in self.positions.iteritems():
-            if v & p1_placed:
-                P[r][c] = 1
-            elif v & p2_placed:
-                P[r][c] = 2
+        for p in state['pieces']:
+            P[p['row']][p['column']] = p['player']
 
         board = row_sep.join("%d |"%(i+1) + "|".join(pieces[x] for x in row) +
                              "|\n" for i, row in enumerate(P))
@@ -187,10 +185,11 @@ class Board(object):
         state = history[-1]
         p1_placed, p2_placed, previous, player = state
 
-        p1_score = bin(p1_placed).count('1')
-        p2_score = bin(p2_placed).count('1')
+        p1_score = bin(p1_placed).count('1') * 1.0
+        p2_score = bin(p2_placed).count('1') * 1.0
+        total = p1_score + p2_score
 
-        return {1: p1_score, 2: p2_score}
+        return {1: (p1_score - p2_score) / total, 2: (p2_score - p1_score) / total}
 
     def winner_message(self, winners):
         winners = sorted((v, k) for k, v in winners.iteritems())
@@ -199,7 +198,7 @@ class Board(object):
             return "Tie."
         return "Winner: Player {0}.".format(winner)
 
-    def pack_state(self, data):
+    def to_compact_state(self, data):
         player = data['player']
         previous = data['previous_player']
         state = {1: 0, 2: 0}
@@ -209,7 +208,7 @@ class Board(object):
 
         return (state[1], state[2], previous, player)
 
-    def unpack_state(self, state):
+    def to_json_state(self, state):
         p1_placed, p2_placed, previous, player = state
 
         pieces = []
@@ -227,14 +226,23 @@ class Board(object):
             'previous_player': previous,
         }
 
-    def pack_action(self, notation):
+    def to_compact_action(self, action):
+        return (action['row'], action['column'])
+
+    def to_json_action(self, action):
+        try:
+            return {'row': action[0], 'column': action[1]}
+        except Exception:
+            return {}
+
+    def from_notation(self, notation):
         result = self.moveRE.match(notation)
         if not result:
             return
         c, r = result.groups()
-        return int(r) - 1, 'abcdefgh'.index(c)
+        return (int(r) - 1, 'abcdefgh'.index(c))
 
-    def unpack_action(self, action):
+    def to_notation(self, action):
         if action is None:
             return ''
         r, c = action
