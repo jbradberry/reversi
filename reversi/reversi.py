@@ -248,7 +248,8 @@ class Board(object):
         r, c = action
         return 'abcdefgh'[c] + str(r+1)
 
-    def next_state(self, state, action):
+    def next_state(self, history, action):
+        state = history[-1]
         P = self.positions[action]
         p1_placed, p2_placed, previous, player = state
 
