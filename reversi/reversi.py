@@ -50,13 +50,13 @@ class Board(object):
         board = ''.join((header, row_sep, board, row_sep, header, msg))
         return board
 
-    def is_legal(self, history, action):
-        actions = set(self.legal_actions(history))
+    def is_legal(self, state, action):
+        actions = set(self.legal_actions(state))
         return action in actions
 
-    def legal_actions(self, history):
+    def legal_actions(self, state):
         ## Kogge-Stone algorithm
-        p1_placed, p2_placed, previous, player = history[-1]
+        p1_placed, p2_placed, previous, player = state
         occupied = p1_placed | p2_placed
         empty = 0xffffffffffffffff ^ occupied
 
@@ -148,8 +148,7 @@ class Board(object):
     def current_player(self, state):
         return state[-1]
 
-    def is_ended(self, history):
-        state = history[-1]
+    def is_ended(self, state):
         p1_placed, p2_placed, previous, player = state
 
         if p2_placed == 0:
@@ -159,13 +158,12 @@ class Board(object):
 
         occupied = p1_placed | p2_placed
         return (occupied == (1 << (self.rows * self.cols)) - 1 or
-                not self.legal_actions([state]))
+                not self.legal_actions(state))
 
-    def win_values(self, history):
-        if not self.is_ended(history):
+    def win_values(self, state):
+        if not self.is_ended(state):
             return
 
-        state = history[-1]
         p1_placed, p2_placed, previous, player = state
 
         p1_score = bin(p1_placed).count('1')
@@ -178,11 +176,10 @@ class Board(object):
         if p1_score == p2_score:
             return {1: 0.5, 2: 0.5}
 
-    def points_values(self, history):
-        if not self.is_ended(history):
+    def points_values(self, state):
+        if not self.is_ended(state):
             return
 
-        state = history[-1]
         p1_placed, p2_placed, previous, player = state
 
         p1_score = bin(p1_placed).count('1') * 1.0
@@ -350,6 +347,6 @@ class Board(object):
 
         # If there are legal actions with the next player, they are
         # next.  Otherwise, this player gets to go again.
-        if self.legal_actions([(p1_placed, p2_placed, player, 3-player)]):
+        if self.legal_actions((p1_placed, p2_placed, player, 3-player)):
             return (p1_placed, p2_placed, player, 3-player)
         return (p1_placed, p2_placed, player, player)
