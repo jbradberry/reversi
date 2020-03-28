@@ -1,5 +1,7 @@
+from __future__ import absolute_import
 import re
-import string
+import six
+from six.moves import range
 
 
 class Board(object):
@@ -20,8 +22,8 @@ class Board(object):
     @classmethod
     def initialize(cls):
         cls.positions.update(((r, c), 1 << (cls.cols * r + c))
-                             for r in xrange(cls.rows)
-                             for c in xrange(cls.cols))
+                             for r in range(cls.rows)
+                             for c in range(cls.cols))
 
     def starting_state(self):
         # p1 placed, p2 placed, previous player, player to move
@@ -32,7 +34,7 @@ class Board(object):
         pieces = self.unicode_pieces if _unicode else self.str_pieces
 
         row_sep = "  |" + "-"*(4*self.cols - 1) + "|\n"
-        header = "\n" + " "*4 + "   ".join(string.lowercase[:self.cols]) + "\n"
+        header = "\n" + " "*4 + "   ".join('abcdefgh') + "\n"
         msg = "{0}Player {1} to move.    ({2}-{3})".format(
             "Played: {}\n".format(
                 self.to_notation(self.to_compact_action(action))) if action else '',
@@ -41,7 +43,7 @@ class Board(object):
             sum(1 for p in state['pieces'] if p['player'] == 2)
         )
 
-        P = [[0 for c in xrange(self.cols)] for r in xrange(self.rows)]
+        P = [[0 for c in range(self.cols)] for r in range(self.rows)]
         for p in state['pieces']:
             P[p['row']][p['column']] = p['player']
 
@@ -139,7 +141,7 @@ class Board(object):
         g |= p & (g << 28)
         legal |= ((g & ~mine & mask_a) << 7) & empty
 
-        return [(r, c) for (r, c), v in self.positions.iteritems()
+        return [(r, c) for (r, c), v in six.iteritems(self.positions)
                 if v & legal]
 
     def previous_player(self, state):
@@ -189,7 +191,7 @@ class Board(object):
         return {1: (p1_score - p2_score) / total, 2: (p2_score - p1_score) / total}
 
     def winner_message(self, winners):
-        winners = sorted((v, k) for k, v in winners.iteritems())
+        winners = sorted((v, k) for k, v in six.iteritems(winners))
         value, winner = winners[-1]
         if value == 0.5:
             return "Tie."
@@ -209,8 +211,8 @@ class Board(object):
         p1_placed, p2_placed, previous, player = state
 
         pieces = []
-        for r in xrange(self.rows):
-            for c in xrange(self.cols):
+        for r in range(self.rows):
+            for c in range(self.cols):
                 index = 1 << (self.cols * r + c)
                 if index & p1_placed:
                     pieces.append({'type': 'disc', 'player': 1, 'row': r, 'column': c})

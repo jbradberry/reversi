@@ -1,5 +1,6 @@
+from __future__ import absolute_import
 import unittest
-from reversi import Board
+from .reversi import Board
 
 board = Board()
 
