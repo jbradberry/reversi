@@ -8,7 +8,7 @@ class Board(object):
     positions = {}
 
     str_pieces = {0: "   ", 1: " x ", 2: " o "}
-    unicode_pieces = {0: "   ", 1: u" \u25cf ", 2: u" \u25cb "}
+    unicode_pieces = {0: "   ", 1: " \u25cf ", 2: " \u25cb "}
 
     moveRE = re.compile(r'([a-h])([1-8])')
 
