@@ -29,25 +29,24 @@ class Board:
 
     def display(self, state, action, _unicode=True):
         pieces = self.unicode_pieces if _unicode else self.str_pieces
-
-        row_sep = "  |" + "-"*(4*self.cols - 1) + "|\n"
-        header = "\n" + " "*4 + "   ".join('abcdefgh') + "\n"
-        msg = "{0}Player {1} to move.    ({2}-{3})".format(
-            "Played: {}\n".format(
-                self.to_notation(self.to_compact_action(action))) if action else '',
-            state['player'],
-            sum(1 for p in state['pieces'] if p['player'] == 1),
-            sum(1 for p in state['pieces'] if p['player'] == 2)
-        )
+        p1 = sum(1 for p in state['pieces'] if p['player'] == 1)
+        p2 = sum(1 for p in state['pieces'] if p['player'] == 2)
 
         P = [[0 for c in range(self.cols)] for r in range(self.rows)]
         for p in state['pieces']:
             P[p['row']][p['column']] = p['player']
 
-        board = row_sep.join("%d |"%(i+1) + "|".join(pieces[x] for x in row) +
-                             "|\n" for i, row in enumerate(P))
-        board = ''.join((header, row_sep, board, row_sep, header, msg))
-        return board
+        return ''.join((
+            "    a   b   c   d   e   f   g   h\n",
+            "  |-------------------------------|\n",
+            "  |-------------------------------|\n".join(
+                f"{i+1:d} |{'|'.join(pieces[x] for x in row)}|\n" for i, row in enumerate(P)
+            ),
+            "  |-------------------------------|\n",
+            "    a   b   c   d   e   f   g   h\n",
+            f"Played: {self.to_notation(self.to_compact_action(action))}\n" if action else '',
+            f"Player {state['player']} to move.    ({p1}-{p2})"
+        ))
 
     def is_legal(self, state, action):
         actions = set(self.legal_actions(state))
@@ -192,7 +191,7 @@ class Board:
         value, winner = winners[-1]
         if value == 0.5:
             return "Tie."
-        return "Winner: Player {0}.".format(winner)
+        return f"Winner: Player {winner}."
 
     def to_compact_state(self, data):
         player = data['player']
