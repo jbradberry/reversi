@@ -1,7 +1,7 @@
 import re
 
 
-class Board(object):
+class Board:
     num_players = 2
     rows = cols = 8
 
