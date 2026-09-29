@@ -1,6 +1,4 @@
 import re
-import six
-from six.moves import range
 
 
 class Board(object):
@@ -140,7 +138,7 @@ class Board(object):
         g |= p & (g << 28)
         legal |= ((g & ~mine & mask_a) << 7) & empty
 
-        return [(r, c) for (r, c), v in six.iteritems(self.positions)
+        return [(r, c) for (r, c), v in self.positions.items()
                 if v & legal]
 
     def previous_player(self, state):
@@ -190,7 +188,7 @@ class Board(object):
         return {1: (p1_score - p2_score) / total, 2: (p2_score - p1_score) / total}
 
     def winner_message(self, winners):
-        winners = sorted((v, k) for k, v in six.iteritems(winners))
+        winners = sorted((v, k) for k, v in winners.items())
         value, winner = winners[-1]
         if value == 0.5:
             return "Tie."
