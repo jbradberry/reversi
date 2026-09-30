@@ -1,17 +1,14 @@
-from __future__ import absolute_import
 import re
-import six
-from six.moves import range
 
 
-class Board(object):
+class Board:
     num_players = 2
     rows = cols = 8
 
     positions = {}
 
     str_pieces = {0: "   ", 1: " x ", 2: " o "}
-    unicode_pieces = {0: "   ", 1: u" \u25cf ", 2: u" \u25cb "}
+    unicode_pieces = {0: "   ", 1: " \u25cf ", 2: " \u25cb "}
 
     moveRE = re.compile(r'([a-h])([1-8])')
 
@@ -32,25 +29,24 @@ class Board(object):
 
     def display(self, state, action, _unicode=True):
         pieces = self.unicode_pieces if _unicode else self.str_pieces
-
-        row_sep = "  |" + "-"*(4*self.cols - 1) + "|\n"
-        header = "\n" + " "*4 + "   ".join('abcdefgh') + "\n"
-        msg = "{0}Player {1} to move.    ({2}-{3})".format(
-            "Played: {}\n".format(
-                self.to_notation(self.to_compact_action(action))) if action else '',
-            state['player'],
-            sum(1 for p in state['pieces'] if p['player'] == 1),
-            sum(1 for p in state['pieces'] if p['player'] == 2)
-        )
+        p1 = sum(1 for p in state['pieces'] if p['player'] == 1)
+        p2 = sum(1 for p in state['pieces'] if p['player'] == 2)
 
         P = [[0 for c in range(self.cols)] for r in range(self.rows)]
         for p in state['pieces']:
             P[p['row']][p['column']] = p['player']
 
-        board = row_sep.join("%d |"%(i+1) + "|".join(pieces[x] for x in row) +
-                             "|\n" for i, row in enumerate(P))
-        board = ''.join((header, row_sep, board, row_sep, header, msg))
-        return board
+        return ''.join((
+            "    a   b   c   d   e   f   g   h\n",
+            "  |-------------------------------|\n",
+            "  |-------------------------------|\n".join(
+                f"{i+1:d} |{'|'.join(pieces[x] for x in row)}|\n" for i, row in enumerate(P)
+            ),
+            "  |-------------------------------|\n",
+            "    a   b   c   d   e   f   g   h\n",
+            f"Played: {self.to_notation(self.to_compact_action(action))}\n" if action else '',
+            f"Player {state['player']} to move.    ({p1}-{p2})"
+        ))
 
     def is_legal(self, state, action):
         actions = set(self.legal_actions(state))
@@ -141,7 +137,7 @@ class Board(object):
         g |= p & (g << 28)
         legal |= ((g & ~mine & mask_a) << 7) & empty
 
-        return [(r, c) for (r, c), v in six.iteritems(self.positions)
+        return [(r, c) for (r, c), v in self.positions.items()
                 if v & legal]
 
     def previous_player(self, state):
@@ -191,11 +187,11 @@ class Board(object):
         return {1: (p1_score - p2_score) / total, 2: (p2_score - p1_score) / total}
 
     def winner_message(self, winners):
-        winners = sorted((v, k) for k, v in six.iteritems(winners))
+        winners = sorted((v, k) for k, v in winners.items())
         value, winner = winners[-1]
         if value == 0.5:
             return "Tie."
-        return "Winner: Player {0}.".format(winner)
+        return f"Winner: Player {winner}."
 
     def to_compact_state(self, data):
         player = data['player']
